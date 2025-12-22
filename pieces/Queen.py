@@ -9,6 +9,81 @@ class Queen(Piece):
         else:
             self.image = "/home/geralyn/Documents/buildEveryday/multiChessPlayer/assets/bq.png"
 
-    def allPossibleMoves(self):
-        #Given the current position of the piece, we want to calculate all the possible moves it could make
-        return []
+    def get_legal_moves(self, board):
+        legal_moves = []
+        x, y = self.getPosition()
+
+        for i in range(x-1, -1, -1):
+            piece = board.config[y][i].getCurrentOccupyingPiece()
+            if piece is not None:
+                if piece.color != self.color:
+                    legal_moves.append((i, y))
+                break
+            legal_moves.append((i, y))
+        for i in range(x+1, 8):
+            piece = board.config[y][i].getCurrentOccupyingPiece()
+            if piece is not None:
+                if piece.color != self.color:
+                    legal_moves.append((i, y))
+                break
+            legal_moves.append((i, y))
+
+        for j in range(y-1, -1, -1):
+            piece = board.config[j][x].getCurrentOccupyingPiece()
+            if piece is not None:
+                if piece.color != self.color:
+                    legal_moves.append((x, j))
+                break
+            legal_moves.append((x, j))
+
+        for j in range(y+1, 8):
+            piece = board.config[j][x].getCurrentOccupyingPiece()
+            if piece is not None:
+                if piece.color != self.color:
+                    legal_moves.append((x, j))
+                break
+            legal_moves.append((x, j))
+
+        for i in range(1,x+1): #cells to the left
+            print(x + (i * -1), y - (i * 1))
+            if (x + (i * -1) >= 0) and (y - (i*1) <= 7 and y - (i*1) >= 0):
+                #going to the bottom left diag of piece
+                piece = board.config[y - (i * 1)][x + (i * -1)].getCurrentOccupyingPiece()
+                if piece is not None:
+                    if piece.color != self.color:
+                        legal_moves.append((x + (i * -1), y - (i * 1)))
+                    break
+                legal_moves.append((x + (i * -1), y - (i * 1)))
+
+        for i in range(1,x+1):
+            if (x + (i * -1) >= 0) and (y + (i*1) <= 7):
+                #going to the top left diag of piece  
+                piece = board.config[y + (i * 1)][x + (i * -1)].getCurrentOccupyingPiece()
+                if piece is not None:
+                    if piece.color != self.color:
+                        legal_moves.append((x + (i * -1), y + (i * 1)))
+                    break
+                legal_moves.append((x + (i * -1), y + (i * 1)))
+            
+            
+        for i in range(1, 7-x):
+            if (x + (i * 1) <= 7) and (y - (i*1) >= 0):
+                #going to the top right diag of piece
+                piece = board.config[y - (i * 1)][x + (i * 1)].getCurrentOccupyingPiece()
+                if piece is not None:
+                    if piece.color != self.color:
+                        legal_moves.append((x + (i * 1), y - (i * 1)))
+                    break
+                legal_moves.append((x + (i * 1), y - (i * 1)))
+
+        for i in range(1, 7-x):
+            if (x + (i * 1) <= 7) and (y + (i*1) <= 7):
+                #going to the bottom right diag of piece
+                piece = board.config[y + (i * 1)][x + (i * 1)].getCurrentOccupyingPiece()
+                if piece is not None:
+                    if piece.color != self.color:
+                        legal_moves.append((x + (i * 1), y + (i * 1)))
+                    break
+                legal_moves.append((x + (i * 1), y + (i * 1)))
+        
+        return legal_moves

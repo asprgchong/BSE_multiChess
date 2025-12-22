@@ -13,3 +13,5 @@ class Piece():
 
     def getAllValidMoves(self):
         return []
+    
+    
