@@ -1,5 +1,3 @@
-import pygame
-
 class Piece():
     def __init__(self, pos, color, board): 
         self.x = pos[0]
@@ -10,8 +8,3 @@ class Piece():
 
     def getPosition(self):
         return (self.x, self.y)
-
-    def getAllValidMoves(self):
-        return []
-    
-    

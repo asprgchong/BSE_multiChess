@@ -31,32 +31,25 @@ class Board:
         ]
         self.activePieces = []
         self.pieceMapping = []
-
-    def displayCurrentBoard(self):
-        for row in self.config:
-            for eachTile in row: 
-                piece = eachTile.getCurrentOccupyingPiece()
-                if piece is not None: 
-                    print((piece.x,piece.y, self.getPieceAtCoord(piece.x, piece.y)), end="")
-                    print(" | ", end="")
-                else: 
-                    print('',end="")
-                    print(" | ", end="")
-            print("")
+        self.blackKing = None
+        self.whiteKing = None 
 
     def boardSetUp(self):
         result = []
         for rowindex, eachrow in enumerate(self.config):
             row = [] 
             for index, eachTile in enumerate(eachrow):
+                if eachTile == '':
+                    newTile = Tile(index, rowindex, cellwidth, cellwidth)
+                    row.append(newTile)
+                    continue
+                    
                 # make the piece and place on corresponding tile
                 if "b" in eachTile:
                     color = "black"
                 else: 
                     color = "white"
 
-                # leftAdd = (cellwidth) * (color == "black") * index
-                # topAdd = (cellwidth) * rowindex
                 if "R" in eachTile:
                     newPiece = Rook((index, rowindex), color, self)
                 elif "N" in eachTile: 
@@ -64,16 +57,18 @@ class Board:
                 elif "B" in eachTile:
                     newPiece = Bishop((index, rowindex), color, self)
                 elif "Q" in eachTile:
-                    newPiece = Queen((index, rowindex), color,self)
+                    newPiece = Queen((index, rowindex), color, self)
                 elif "K" in eachTile:
-                    newPiece = King((index, rowindex), color,self)
+                    newPiece = King((index, rowindex), color, self)
+                    if color == "white":
+                        self.whiteKing = (index, rowindex)
+                    else:
+                        self.blackKing = (index, rowindex)
                 elif "P" in eachTile:
                     newPiece = Pawn((index, rowindex), color, self)
 
                 newTile = Tile(newPiece.x, newPiece.y, cellwidth, cellwidth)
-                if eachTile != '':
-                    newTile.occupying_piece = newPiece
-                # print(index, rowindex, eachTile)
+                newTile.occupying_piece = newPiece
                 row.append(newTile)
             result.append(row)
         self.config = result
@@ -86,7 +81,6 @@ class Board:
                 pygame.draw.rect(screen, pygame.Color(105, 105, 105,1), (
                     (column * (cellwidth*2))+leftPush, (row * cellwidth)+topPush, cellwidth, cellwidth
                 ))
-                #left coord, top coord, width, height
                 pygame.draw.rect(screen, pygame.Color(199, 199, 199,1), (
                     (((column * (cellwidth*2))+cellwidth)+leftPush, (row * cellwidth)+topPush, cellwidth, cellwidth
                 )))
@@ -94,12 +88,10 @@ class Board:
                 pygame.draw.rect(screen, pygame.Color(199, 199, 199,1), (
                     (column * (cellwidth*2))+leftPush, (row * cellwidth)+topPush, cellwidth, cellwidth
                 ))
-                #left coord, top coord, width, height
                 pygame.draw.rect(screen, pygame.Color(105, 105, 105,1), (
                     (((column * (cellwidth*2))+cellwidth)+leftPush, (row * cellwidth)+topPush, cellwidth, cellwidth
                 )))  
         
-        #Adding the indexes to each column and row
         for i in range(8):
             font = pygame.font.Font(None, 36)
             text = font.render(str(i), False, (255, 255, 255))
@@ -121,31 +113,133 @@ class Board:
                     piece_scaled = pygame.transform.scale(image, (100, 100))
                     piece_rect = piece_scaled.get_rect(topleft=((piece.x * cellwidth) + (leftPush * 1.2), (piece.y * cellwidth) + (topPush * 1.2)))
                     self.activePieces.append(piece_rect)
-                    self.pieceMapping.append(piece)
+                    self.pieceMapping.append((piece, 1))
 
                     screen.blit(piece_scaled, piece_rect)
 
-    def getPieceAtCoord(self, x ,y):
+    def is_square_attacked(self, x, y, by_color):
+        for row in self.config:
+            for tile in row:
+                piece = tile.getCurrentOccupyingPiece()
+                if piece and piece.color == by_color:
+                    if isinstance(piece, King):
+                        px, py = piece.getPosition()
+                        if abs(px - x) <= 1 and abs(py - y) <= 1 and (px != x or py != y):
+                            return True
+                    elif isinstance(piece, Pawn):
+                        px, py = piece.getPosition()
+                        direction = -1 if piece.color == "white" else 1
+                        if py + direction == y and abs(px - x) == 1:
+                            return True
+                    else:
+                        moves = piece.get_legal_moves(self)
+                        if (x, y) in moves:
+                            return True
+        return False
+
+    def would_be_in_check(self, piece, new_x, new_y):
+        old_x, old_y = piece.getPosition()
+        captured_piece = self.config[new_y][new_x].getCurrentOccupyingPiece()
+        
+        self.config[old_y][old_x].occupying_piece = None
+        self.config[new_y][new_x].occupying_piece = piece
+        piece.x = new_x
+        piece.y = new_y
+        
+        if piece.color == "white":
+            king_pos = self.whiteKing if not isinstance(piece, King) else (new_x, new_y)
+        else:
+            king_pos = self.blackKing if not isinstance(piece, King) else (new_x, new_y)
+        
+        opponent_color = "black" if piece.color == "white" else "white"
+        in_check = self.is_square_attacked(king_pos[0], king_pos[1], opponent_color)
+        
+        piece.x = old_x
+        piece.y = old_y
+        self.config[old_y][old_x].occupying_piece = piece
+        self.config[new_y][new_x].occupying_piece = captured_piece
+        
+        return in_check
+
+    def get_legal_moves_for_piece(self, piece):
+        """
+            Get all legal moves for a piece, filtering out moves that would leave king in check
+        """
+        pseudo_legal_moves = piece.get_legal_moves(self)
+        legal_moves = []
+        
+        for move in pseudo_legal_moves:
+            if not self.would_be_in_check(piece, move[0], move[1]):
+                legal_moves.append(move)
+        
+        return legal_moves
+
+    def getPieceAtCoord(self, x, y):
         if self.config[y][x].getCurrentOccupyingPiece() is None:
             return "No pieces here!"
-        elif isinstance(self.config[y][x].getCurrentOccupyingPiece(),Pawn):
+        piece = self.config[y][x].getCurrentOccupyingPiece()
+        if isinstance(piece, Pawn):
             return "Pawn"
-        elif isinstance(self.config[y][x].getCurrentOccupyingPiece(), Rook):
+        elif isinstance(piece, Rook):
             return "Rook"
-        elif isinstance(self.config[y][x].getCurrentOccupyingPiece(), Knight):
+        elif isinstance(piece, Knight):
             return "Knight"
-        elif isinstance(self.config[y][x].getCurrentOccupyingPiece(), Bishop):
+        elif isinstance(piece, Bishop):
             return "Bishop"
-        elif isinstance(self.config[y][x].getCurrentOccupyingPiece(), King):
+        elif isinstance(piece, King):
             return "King"
-        elif isinstance(self.config[y][x].getCurrentOccupyingPiece(), Queen):
+        elif isinstance(piece, Queen):
             return "Queen"
         
-    def updateConfig(self, index, prevPosition):
-        if index is not None:
-            piece = self.pieceMapping[index]
+    def updateConfig(self, index, prevPosition, capture=False):
+        piece = self.pieceMapping[index][0]
+        
+        if isinstance(piece, Pawn):
+            if piece.doubleUp[0] and abs(piece.y - prevPosition[1]) == 2:
+                piece.doubleUp = (False, 1)
+            else: 
+                piece.doubleUp = (piece.doubleUp[0], piece.doubleUp[1] + 1)
+
+        if isinstance(piece, King):
+            if piece.color == "white":
+                self.whiteKing = (piece.x, piece.y)
+            else:
+                self.blackKing = (piece.x, piece.y)
+
+        if capture:
+            self.config[prevPosition[1]][prevPosition[0]].occupying_piece = None
+            self.pieceMapping[index] = (piece, 0)
+        else:
             self.config[piece.y][piece.x].occupying_piece = piece
             self.config[prevPosition[1]][prevPosition[0]].occupying_piece = None
-        else:
-            self.config[prevPosition[1]][prevPosition[0]].occupying_piece = None
-            
+
+    def is_in_check(self, color):
+        """
+        Check if the king of the given color is in check
+        
+        """
+        king_pos = self.whiteKing if color == "white" else self.blackKing
+        opponent_color = "black" if color == "white" else "white"
+        return self.is_square_attacked(king_pos[0], king_pos[1], opponent_color)
+
+    def checkmate(self, turn):
+        next_color = "black" if turn == "white" else "white"
+      
+        has_legal_move = False
+        for row in self.config:
+            for tile in row:
+                piece = tile.getCurrentOccupyingPiece()
+                if piece and piece.color == next_color:
+                    if self.get_legal_moves_for_piece(piece):
+                        has_legal_move = True
+                        break
+            if has_legal_move:
+                break
+        
+        if not has_legal_move:
+            if self.is_in_check(next_color):
+                return "checkmate"
+            else:
+                return "stalemate"
+        
+        return "nope"

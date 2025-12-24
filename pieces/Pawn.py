@@ -1,13 +1,9 @@
 from Piece import Piece
-import pygame
 
 class Pawn(Piece):
     def __init__(self, position, color, board): 
         super(Pawn, self).__init__(pos=position, color=color, board=board)
-        if color == "white":
-            self.image = "/home/geralyn/Documents/buildEveryday/multiChessPlayer/assets/wp.png"
-        else:
-            self.image = "/home/geralyn/Documents/buildEveryday/multiChessPlayer/assets/bp.png"
+        self.image = f"assets/{'wp' if color == 'white' else 'bp'}.png"
         self.doubleUp = (True, 0)
         self.enpassant = False
 
@@ -20,33 +16,20 @@ class Pawn(Piece):
         if self.doubleUp[0]:
             unitDirections.append((0,2))
         
-        '''
-        check if en passant is available:
-        Need to have moved 3 ranks to qualify
-        Check if there is opponent pawn next to self
-        Check if that opponent pawn has just been updated to doubleUp
-        '''
-        if (self.color == "black" and y >= 3) or (self.color == "white" and y <= 4):
-            opppieceRight = board.config[y][x+1].getCurrentOccupyingPiece()
-            opppieceLeft = board.config[y][x-1].getCurrentOccupyingPiece()
-            if opppieceRight is not None and (isinstance(opppieceRight,Pawn) and opppieceRight.doubleUp == (False, 1)):
-                legal_moves.append((-1, 1))
-                self.enpassant = True
-            if opppieceLeft is not None and (isinstance(opppieceRight,Pawn) and opppieceLeft.doubleUp == (False, 1)):
-                legal_moves.append((1, 1))
-                self.enpassant = True
-        
         if self.color == "white":
-            unitDirections = [(x[0] * -1, x[1]*-1) for x in unitDirections]
+            unitDirections = [(dx * -1, dy * -1) for dx, dy in unitDirections]
 
         for eachdir in unitDirections:
-            if (x+eachdir[0] <= 7 and x+eachdir[0] >= 0) and (y+eachdir[1] <= 7 and y+eachdir[1] >= 0):
-                piece = board.config[y+eachdir[1]][x+eachdir[0]].getCurrentOccupyingPiece()
+            nx, ny = x + eachdir[0], y + eachdir[1]
+            if 0 <= nx < 8 and 0 <= ny < 8:
+                piece = board.config[ny][nx].getCurrentOccupyingPiece()
                 if piece is not None:
-                    if piece.color != self.color:
-                        legal_moves.append((x+eachdir[0], y+eachdir[1]))
+                    # Can only capture diagonally
+                    if piece.color != self.color and eachdir[0] != 0:
+                        legal_moves.append((nx, ny))
                 else:
+                    # Can only move forward to empty squares
                     if eachdir[0] == 0:
-                        legal_moves.append((x+eachdir[0], y+eachdir[1]))
-        return legal_moves        
-        
+                        legal_moves.append((nx, ny))
+
+        return legal_moves

@@ -1,89 +1,27 @@
 from Piece import Piece
-import pygame
 
 class Queen(Piece):
     def __init__(self, position, color, board): 
         super(Queen, self).__init__(pos=position, color=color, board=board)
-        if color == "white":
-            self.image = "/home/geralyn/Documents/buildEveryday/multiChessPlayer/assets/wq.png"
-        else:
-            self.image = "/home/geralyn/Documents/buildEveryday/multiChessPlayer/assets/bq.png"
+        self.image = f"assets/{'wq' if color == 'white' else 'bq'}.png"
 
     def get_legal_moves(self, board):
-        legal_moves = []
+        moves = []
         x, y = self.getPosition()
+        unitDirections = [(0,1), (0,-1), (1,0), (-1,0), (1,1), (1,-1), (-1,1), (-1,-1)]
 
-        for i in range(x-1, -1, -1):
-            piece = board.config[y][i].getCurrentOccupyingPiece()
-            if piece is not None:
-                if piece.color != self.color:
-                    legal_moves.append((i, y))
-                break
-            legal_moves.append((i, y))
-        for i in range(x+1, 8):
-            piece = board.config[y][i].getCurrentOccupyingPiece()
-            if piece is not None:
-                if piece.color != self.color:
-                    legal_moves.append((i, y))
-                break
-            legal_moves.append((i, y))
-
-        for j in range(y-1, -1, -1):
-            piece = board.config[j][x].getCurrentOccupyingPiece()
-            if piece is not None:
-                if piece.color != self.color:
-                    legal_moves.append((x, j))
-                break
-            legal_moves.append((x, j))
-
-        for j in range(y+1, 8):
-            piece = board.config[j][x].getCurrentOccupyingPiece()
-            if piece is not None:
-                if piece.color != self.color:
-                    legal_moves.append((x, j))
-                break
-            legal_moves.append((x, j))
-
-        for i in range(1,x+1): #cells to the left
-            print(x + (i * -1), y - (i * 1))
-            if (x + (i * -1) >= 0) and (y - (i*1) <= 7 and y - (i*1) >= 0):
-                #going to the bottom left diag of piece
-                piece = board.config[y - (i * 1)][x + (i * -1)].getCurrentOccupyingPiece()
-                if piece is not None:
-                    if piece.color != self.color:
-                        legal_moves.append((x + (i * -1), y - (i * 1)))
+        for dx, dy in unitDirections:
+            for i in range(1, 8):
+                nx, ny = x + (dx * i), y + (dy * i)
+                if 0 <= nx < 8 and 0 <= ny < 8:
+                    target = board.config[ny][nx].getCurrentOccupyingPiece()
+                    if target is None:
+                        moves.append((nx, ny))
+                    elif target.color != self.color:
+                        moves.append((nx, ny))
+                        break
+                    else:
+                        break
+                else:
                     break
-                legal_moves.append((x + (i * -1), y - (i * 1)))
-
-        for i in range(1,x+1):
-            if (x + (i * -1) >= 0) and (y + (i*1) <= 7):
-                #going to the top left diag of piece  
-                piece = board.config[y + (i * 1)][x + (i * -1)].getCurrentOccupyingPiece()
-                if piece is not None:
-                    if piece.color != self.color:
-                        legal_moves.append((x + (i * -1), y + (i * 1)))
-                    break
-                legal_moves.append((x + (i * -1), y + (i * 1)))
-            
-            
-        for i in range(1, 7-x):
-            if (x + (i * 1) <= 7) and (y - (i*1) >= 0):
-                #going to the top right diag of piece
-                piece = board.config[y - (i * 1)][x + (i * 1)].getCurrentOccupyingPiece()
-                if piece is not None:
-                    if piece.color != self.color:
-                        legal_moves.append((x + (i * 1), y - (i * 1)))
-                    break
-                legal_moves.append((x + (i * 1), y - (i * 1)))
-
-        for i in range(1, 7-x):
-            if (x + (i * 1) <= 7) and (y + (i*1) <= 7):
-                #going to the bottom right diag of piece
-                piece = board.config[y + (i * 1)][x + (i * 1)].getCurrentOccupyingPiece()
-                if piece is not None:
-                    if piece.color != self.color:
-                        legal_moves.append((x + (i * 1), y + (i * 1)))
-                    break
-                legal_moves.append((x + (i * 1), y + (i * 1)))
-        
-        return legal_moves
+        return moves
