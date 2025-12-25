@@ -36,7 +36,7 @@ class Board:
         self.whiteenpassants = []
         self.blackenpassants = []
 
-    def boardSetUp(self):
+    def boardSetUp(self, FENstring=""):
         result = []
         for rowindex, eachrow in enumerate(self.config):
             row = [] 
