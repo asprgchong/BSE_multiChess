@@ -29,7 +29,7 @@ class Bishop(Piece):
                     break
                 legal_moves.append((x + (i * -1), y + (i * 1)))
             
-        for i in range(1, 7-x):
+        for i in range(1, 8-x):
             if (x + (i * 1) <= 7) and (y - (i*1) >= 0):
                 # going to the top right diag of piece
                 piece = board.config[y - (i * 1)][x + (i * 1)].getCurrentOccupyingPiece()
@@ -39,7 +39,7 @@ class Bishop(Piece):
                     break
                 legal_moves.append((x + (i * 1), y - (i * 1)))
 
-        for i in range(1, 7-x):
+        for i in range(1, 8-x):
             if (x + (i * 1) <= 7) and (y + (i*1) <= 7):
                 # going to the bottom right diag of piece
                 piece = board.config[y + (i * 1)][x + (i * 1)].getCurrentOccupyingPiece()

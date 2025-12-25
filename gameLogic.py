@@ -62,7 +62,6 @@ while running:
                                 board.updateConfig(board.pieceMapping.index((oppPiece, 1)), (piece.x, piece.y), True)
                             elif oppPiece is None and isinstance(piece,Pawn):
                                 if piece.color == "white":
-                                    print(board.pieceMapping)
                                     if board.config[piece.y + 1][piece.x].getCurrentOccupyingPiece() in board.blackenpassants:
                                         board.updateConfig(board.pieceMapping.index((board.config[piece.y+1][piece.x].getCurrentOccupyingPiece(),1)), (piece.x, piece.y+1), True)
                                 else:

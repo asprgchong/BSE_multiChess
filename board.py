@@ -205,10 +205,21 @@ class Board:
             else: 
                 piece.doubleUp = (piece.doubleUp[0], piece.doubleUp[1] + 1)
         elif isinstance(piece, King):
+            if piece.castle and abs(piece.x - prevPosition[0]) == 2:
+                if isinstance(self.config[piece.y][piece.x +1].getCurrentOccupyingPiece(), Rook):
+                    rook = self.config[piece.y][piece.x +1].getCurrentOccupyingPiece()
+                    rook.x = piece.x - 1
+                if isinstance(self.config[piece.y][piece.x - 2].getCurrentOccupyingPiece(), Rook):
+                    rook = self.config[piece.y][piece.x - 2].getCurrentOccupyingPiece()
+                    rook.x = piece.x + 1
+                
+
             if piece.color == "white":
                 self.whiteKing = (piece.x, piece.y)
             else:
                 self.blackKing = (piece.x, piece.y)
+            
+            piece.castle = not piece.castle if piece.castle else piece.castle
 
         if capture:
             self.config[prevPosition[1]][prevPosition[0]].occupying_piece = None
