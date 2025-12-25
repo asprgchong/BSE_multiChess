@@ -33,6 +33,8 @@ class Board:
         self.pieceMapping = []
         self.blackKing = None
         self.whiteKing = None 
+        self.whiteenpassants = []
+        self.blackenpassants = []
 
     def boardSetUp(self):
         result = []
@@ -193,14 +195,16 @@ class Board:
         
     def updateConfig(self, index, prevPosition, capture=False):
         piece = self.pieceMapping[index][0]
-        
         if isinstance(piece, Pawn):
             if piece.doubleUp[0] and abs(piece.y - prevPosition[1]) == 2:
                 piece.doubleUp = (False, 1)
+                if piece.color == "white":
+                    self.whiteenpassants.append(piece)
+                else:
+                    self.blackenpassants.append(piece) 
             else: 
                 piece.doubleUp = (piece.doubleUp[0], piece.doubleUp[1] + 1)
-
-        if isinstance(piece, King):
+        elif isinstance(piece, King):
             if piece.color == "white":
                 self.whiteKing = (piece.x, piece.y)
             else:
@@ -213,10 +217,15 @@ class Board:
             self.config[piece.y][piece.x].occupying_piece = piece
             self.config[prevPosition[1]][prevPosition[0]].occupying_piece = None
 
+        if piece.color == "white":
+            self.blackenpassants = []
+        else:
+            self.whiteenpassants = []
+
     def is_in_check(self, color):
         """
         Check if the king of the given color is in check
-        
+
         """
         king_pos = self.whiteKing if color == "white" else self.blackKing
         opponent_color = "black" if color == "white" else "white"

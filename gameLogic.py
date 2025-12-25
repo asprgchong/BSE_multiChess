@@ -1,5 +1,5 @@
 from board import Board  
-from pieces.King import King  
+from pieces.Pawn import Pawn 
 import pygame
 import sys
 
@@ -60,6 +60,14 @@ while running:
                             oppPiece = board.config[piece.y][piece.x].getCurrentOccupyingPiece()
                             if oppPiece is not None and oppPiece.color != piece.color:
                                 board.updateConfig(board.pieceMapping.index((oppPiece, 1)), (piece.x, piece.y), True)
+                            elif oppPiece is None and isinstance(piece,Pawn):
+                                if piece.color == "white":
+                                    print(board.pieceMapping)
+                                    if board.config[piece.y + 1][piece.x].getCurrentOccupyingPiece() in board.blackenpassants:
+                                        board.updateConfig(board.pieceMapping.index((board.config[piece.y+1][piece.x].getCurrentOccupyingPiece(),1)), (piece.x, piece.y+1), True)
+                                else:
+                                    if board.config[piece.y - 1][piece.x].getCurrentOccupyingPiece() in board.whiteenpassants:
+                                        board.updateConfig(board.pieceMapping.index((board.config[piece.y-1][piece.x].getCurrentOccupyingPiece(),1)), (piece.x, piece.y-1), True)
                             board.updateConfig(active_box, prevMove)
                             
                             # Switch turns!!
