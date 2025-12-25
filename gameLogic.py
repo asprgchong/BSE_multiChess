@@ -1,4 +1,5 @@
-from board import Board  
+from board import Board 
+import queryPuzzle  
 from pieces.Pawn import Pawn 
 import pygame
 import sys
@@ -13,10 +14,11 @@ clock = pygame.time.Clock()
 cellwidth = 120
 leftPush = 40
 topPush = 30
-
 running = True
+
 board = Board(960, 960)
-board.boardSetUp()
+# fen = queryPuzzle.getDaysPuzzle(board)
+
 active_box = None
 dragging = False
 prevMove = None
@@ -26,6 +28,9 @@ gameOver = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
+            ############################################################################
+            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+            ############################################################################
             if event.button == 1 and not gameOver:
                 for i, eachPiece in enumerate(board.activePieces):
                     if eachPiece.collidepoint(event.pos):
@@ -43,14 +48,26 @@ while running:
                             prevMove = piece.getPosition()
                             dragging = True
                         break
+            ############################################################################
+            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+            ############################################################################
                         
         if event.type == pygame.MOUSEMOTION:
+            ############################################################################
+            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+            ############################################################################
             if active_box is not None and dragging and not gameOver:
                 piece = board.pieceMapping[active_box][0]
                 piece.x = (event.pos[0] - leftPush) // cellwidth
                 piece.y = (event.pos[1] - topPush) // cellwidth
+            ############################################################################
+            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+            ############################################################################
                 
         if event.type == pygame.MOUSEBUTTONUP:
+            ############################################################################
+            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+            ############################################################################
             if event.button == 1 and active_box is not None and not gameOver:
                 piece = board.pieceMapping[active_box][0]
                 
@@ -106,7 +123,10 @@ while running:
                     dragging = False
                     active_box = None
                     currPieceLegalMoves = []
-                    
+            ############################################################################
+            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+            ############################################################################
+
         if event.type == pygame.QUIT:
             running = False
 
@@ -114,6 +134,9 @@ while running:
     
     board.draw_board(screen)
     board.draw_pieces(screen)
+
+    # Make the button to indicate that we want to set up the puzzle on the board
+    
 
     if gameOver:
         # Display game over message
