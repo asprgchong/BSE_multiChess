@@ -1,8 +1,8 @@
 from Piece import Piece
 
 class Queen(Piece):
-    def __init__(self, position, color, board): 
-        super(Queen, self).__init__(pos=position, color=color, board=board)
+    def __init__(self, position, color): 
+        super(Queen, self).__init__(pos=position, color=color)
         self.image = f"assets/{'wq' if color == 'white' else 'bq'}.png"
 
     def get_legal_moves(self, board):

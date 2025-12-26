@@ -1,8 +1,8 @@
 from Piece import Piece
 
 class Pawn(Piece):
-    def __init__(self, position, color, board): 
-        super(Pawn, self).__init__(pos=position, color=color, board=board)
+    def __init__(self, position, color): 
+        super(Pawn, self).__init__(pos=position, color=color)
         self.image = f"assets/{'wp' if color == 'white' else 'bp'}.png"
         self.doubleUp = (True, 0)
 

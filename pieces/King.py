@@ -2,8 +2,8 @@ from Piece import Piece
 from pieces.Rook import Rook
 
 class King(Piece):
-    def __init__(self, position, color, board): 
-        super(King, self).__init__(pos=position, color=color, board=board)
+    def __init__(self, position, color): 
+        super(King, self).__init__(pos=position, color=color)
         self.image = f"assets/{'wk' if color == 'white' else 'bk'}.png"
         self.castle = True
 

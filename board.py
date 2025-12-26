@@ -36,43 +36,106 @@ class Board:
         self.whiteenpassants = []
         self.blackenpassants = []
 
-    def boardSetUp(self, FENstring=""):
+    def boardSetUp(self, FENlist=""):
         result = []
-        for rowindex, eachrow in enumerate(self.config):
-            row = [] 
-            for index, eachTile in enumerate(eachrow):
-                if eachTile == '':
-                    newTile = Tile(index, rowindex, cellwidth, cellwidth)
-                    row.append(newTile)
-                    continue
-                    
-                # make the piece and place on corresponding tile
-                if "b" in eachTile:
-                    color = "black"
-                else: 
-                    color = "white"
-
-                if "R" in eachTile:
-                    newPiece = Rook((index, rowindex), color, self)
-                elif "N" in eachTile: 
-                    newPiece = Knight((index, rowindex), color, self)
-                elif "B" in eachTile:
-                    newPiece = Bishop((index, rowindex), color, self)
-                elif "Q" in eachTile:
-                    newPiece = Queen((index, rowindex), color, self)
-                elif "K" in eachTile:
-                    newPiece = King((index, rowindex), color, self)
-                    if color == "white":
-                        self.whiteKing = (index, rowindex)
+        if FENlist != "":
+            print(FENlist)
+            for rowindex, row in enumerate(FENlist[:-1]):
+                newrow = [] 
+                col = 0
+                for index, piece in enumerate(row):
+                    if piece.isnumeric():
+                        count = int(piece)
+                        i = 0
+                        while i < count:
+                            newTile = Tile(col, rowindex, cellwidth, cellwidth)
+                            newrow.append(newTile)
+                            i += 1
+                            col += 1
                     else:
-                        self.blackKing = (index, rowindex)
-                elif "P" in eachTile:
-                    newPiece = Pawn((index, rowindex), color, self)
+                        if piece.isupper():
+                            color = "white"
+                        else:
+                            color = "black"
 
-                newTile = Tile(newPiece.x, newPiece.y, cellwidth, cellwidth)
-                newTile.occupying_piece = newPiece
-                row.append(newTile)
-            result.append(row)
+                        piece = piece.upper()
+                        if "R" == piece:
+                            newPiece = Rook((col, rowindex), color)
+                        elif "N" == piece: 
+                            newPiece = Knight((col, rowindex), color)
+                        elif "B" == piece:
+                            newPiece = Bishop((col, rowindex), color)
+                        elif "Q" == piece:
+                            newPiece = Queen((col, rowindex), color)
+                        elif "K" == piece:
+                            newPiece = King((col, rowindex), color)
+                            print((col,rowindex))
+                            if color == "white":
+                                self.whiteKing = (col, rowindex)
+                            else:
+                                self.blackKing = (col, rowindex)
+                        elif "P" == piece:
+                            newPiece = Pawn((col, rowindex), color)
+                        col += 1
+                        newTile = Tile(newPiece.x, newPiece.y, cellwidth, cellwidth)
+                        newTile.occupying_piece = newPiece
+                        newrow.append(newTile)
+                    
+                # for x in newrow:
+                #     p = x.getCurrentOccupyingPiece()
+                #     if isinstance(p, Pawn):
+                #         print("Pawn | ", end='')
+                #     elif isinstance(p, Rook):
+                #         print("Rook | ", end='')
+                #     elif isinstance(p, Knight):
+                #         print("Knight | ", end='')
+                #     elif isinstance(p, Bishop):
+                #         print("Bishop | ", end='')
+                #     elif isinstance(p, King):
+                #         print("King | ", end='')
+                #     elif isinstance(p, Queen):
+                #         print("Queen | ", end='')
+                #     else:
+                #         print("  | ", end='')
+                # print(' ')
+                        
+                result.append(newrow)
+        else:
+            for rowindex, eachrow in enumerate(self.config):
+                row = [] 
+                for index, eachTile in enumerate(eachrow):
+                    if eachTile == '':
+                        newTile = Tile(index, rowindex, cellwidth, cellwidth)
+                        row.append(newTile)
+                        continue
+                        
+                    # make the piece and place on corresponding tile
+                    if "b" in eachTile:
+                        color = "black"
+                    else: 
+                        color = "white"
+
+                    if "R" in eachTile:
+                        newPiece = Rook((index, rowindex), color)
+                    elif "N" in eachTile: 
+                        newPiece = Knight((index, rowindex), color)
+                    elif "B" in eachTile:
+                        newPiece = Bishop((index, rowindex), color)
+                    elif "Q" in eachTile:
+                        newPiece = Queen((index, rowindex), color)
+                    elif "K" in eachTile:
+                        newPiece = King((index, rowindex), color)
+                        if color == "white":
+                            self.whiteKing = (index, rowindex)
+                        else:
+                            self.blackKing = (index, rowindex)
+                    elif "P" in eachTile:
+                        newPiece = Pawn((index, rowindex), color)
+
+                    newTile = Tile(newPiece.x, newPiece.y, cellwidth, cellwidth)
+                    newTile.occupying_piece = newPiece
+                    row.append(newTile)
+                result.append(row)
         self.config = result
 
     def draw_board(self, screen):

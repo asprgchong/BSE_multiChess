@@ -17,7 +17,8 @@ topPush = 30
 running = True
 
 board = Board(960, 960)
-# fen = queryPuzzle.getDaysPuzzle(board)
+board.boardSetUp()
+fen = queryPuzzle.getDaysPuzzle(board)
 
 active_box = None
 dragging = False
@@ -28,30 +29,33 @@ gameOver = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
-            ############################################################################
-            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
-            ############################################################################
             if event.button == 1 and not gameOver:
-                for i, eachPiece in enumerate(board.activePieces):
-                    if eachPiece.collidepoint(event.pos):
-                        active_box = i 
-                        piece = board.pieceMapping[active_box][0]
-                        
-                        if piece.color == board.turn:
-                            currPieceLegalMoves = board.get_legal_moves_for_piece(piece)
-                            print(f"Selected {piece.color} piece at {piece.getPosition()}")
-                            print(f"Legal moves: {currPieceLegalMoves}")
+                if button.collidepoint(event.pos):
+                    board.boardSetUp(FENlist=fen)
+                else:
+                    ############################################################################
+                    ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+                    ############################################################################
+                    for i, eachPiece in enumerate(board.activePieces):
+                        if eachPiece.collidepoint(event.pos):
+                            active_box = i 
+                            piece = board.pieceMapping[active_box][0]
                             
-                            if board.is_in_check(piece.color):
-                                print(f"{piece.color} king is in CHECK!")
+                            if piece.color == board.turn:
+                                currPieceLegalMoves = board.get_legal_moves_for_piece(piece)
+                                print(f"Selected {piece.color} piece at {piece.getPosition()}")
+                                print(f"Legal moves: {currPieceLegalMoves}")
+                                
+                                if board.is_in_check(piece.color):
+                                    print(f"{piece.color} king is in CHECK!")
+                                
+                                prevMove = piece.getPosition()
+                                dragging = True
+                            break
+                    ############################################################################
+                    ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
+                    ############################################################################
                             
-                            prevMove = piece.getPosition()
-                            dragging = True
-                        break
-            ############################################################################
-            ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
-            ############################################################################
-                        
         if event.type == pygame.MOUSEMOTION:
             ############################################################################
             ###############THIS IS FOR THE ACTUAL GAME MECHANICS########################
@@ -130,8 +134,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    ############################################################################
+    ###################SETTING UP THE UI FOR THE GAME###########################
+    ############################################################################
     screen.fill((80, 115, 65))
-    
+    # Button for puzzle set up
+    button = pygame.draw.rect(screen, pygame.Color(0, 0, 0,1), (960 + (leftPush * 2), topPush, cellwidth * 4, cellwidth * 0.75))  
+    font = pygame.font.Font(None, 40)
+    text = font.render("Play Today Chess.com Puzzle", False, (255, 255, 255))
+    screen.blit(text, ((960 + (leftPush * 2) + 20), (topPush + 20)))
+
     board.draw_board(screen)
     board.draw_pieces(screen)
 
