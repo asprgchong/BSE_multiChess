@@ -1,6 +1,11 @@
 from board import Board 
 import queryPuzzle  
-from pieces.Pawn import Pawn 
+from pieces.Rook import Rook
+from pieces.Knight import Knight
+from pieces.Bishop import Bishop
+from pieces.Queen import Queen
+from pieces.King import King
+from pieces.Pawn import Pawn
 import pygame
 import sys
 
@@ -14,11 +19,12 @@ clock = pygame.time.Clock()
 cellwidth = 120
 leftPush = 40
 topPush = 30
+notation = ['a','b','c','d','e','f','g','h']
 running = True
 
 board = Board(960, 960)
 board.boardSetUp()
-fen = queryPuzzle.getDaysPuzzle(board)
+fen = queryPuzzle.getDaysPuzzle()
 
 active_box = None
 dragging = False
@@ -30,6 +36,9 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and not gameOver:
+                ############################################################################
+                ###############THIS IS FOR THE ACTIVATING PUZZLE MODE#######################
+                ############################################################################
                 if button.collidepoint(event.pos):
                     board.boardSetUp(FENlist=fen)
                 else:
@@ -74,9 +83,74 @@ while running:
             ############################################################################
             if event.button == 1 and active_box is not None and not gameOver:
                 piece = board.pieceMapping[active_box][0]
-                
                 if piece.color == board.turn:
-                    if piece.getPosition() in currPieceLegalMoves:
+                    ############################################################################
+                    ###############THIS IS FOR THE ACTUAL PUZZLE SIM############################
+                    ############################################################################
+                    if ((piece.x, piece.y) == board.puzzleSolution[0]["pos"]):
+                        print(board.puzzleSolution)
+                        checkProps = board.puzzleSolution[0]
+                        if (checkProps["piece"] == "R" and isinstance(piece,Rook)) or (checkProps["piece"] == "N" and isinstance(piece, Knight)) or (checkProps['piece'] == "P" and isinstance(piece, Pawn)) or (checkProps['piece'] == "Q" and isinstance(piece, Queen) or (checkProps["piece"] == "B" and isinstance(piece, Bishop)) or (checkProps['piece'] == "K" and isinstance(piece, King))):
+                            if piece.color == board.puzzleStart:
+                                if checkProps["capture"]:
+                                    oppPiece = board.config[piece.y][piece.x].getCurrentOccupyingPiece()
+                                    board.updateConfig(board.pieceMapping.index((oppPiece, 1)), (piece.x, piece.y), True)
+                                board.updateConfig(active_box, prevMove)
+                                if checkProps['mate']:
+                                    winner = "black" if board.turn == "black" else "white"
+                                    board.turn = "black" if board.turn == "white" else "black"
+                                    print(f"Checkmate! {winner} wins!")
+                                    gameOver = True
+                                board.puzzleSolution.pop(0)
+                        prevMove = None
+                        active_box = None
+                        dragging = False
+                        currPieceLegalMoves = []
+
+                        # Simulate next move
+                        if board.puzzleSolution != []:
+                            newProps = board.puzzleSolution[0]
+                            if newProps['capture']:
+                                pieceToCapture = board.pieceMapping.index(board.config[newProps['pos'][1]][newProps['pos'][0]].getCurrentOccupyingPiece())
+                                board.updateConfig(pieceToCapture, newProps["pos"], True)
+                            # How to get the position of the piece before?
+                            x,y = None
+                            piece = None
+                            if newProps['row'] is not None:
+                                y = notation.index(newProps['row'])
+                                for xindex, col in enumerate(board.config[y]):
+                                    p = col.getCurrentOccupyingPiece()
+                                    if (newProps["piece"] == "R" and isinstance(p,Rook)) or (newProps["piece"] == "N" and isinstance(p, Knight)) or (newProps['piece'] == "P" and isinstance(p, Pawn)) or (newProps['piece'] == "Q" and isinstance(p, Queen) or (newProps["piece"] == "B" and isinstance(p, Bishop)) or (newProps['piece'] == "K" and isinstance(p, King))):
+                                        if (newProps['pos'][0], newProps['pos'][1]) in p.get_legal_moves():
+                                            x = xindex
+                                            piece = p
+                                            break
+                            elif newProps['col'] is not None:
+                                x = int(newProps['col'])
+                                for rindex, row in enumerate(board.config):
+                                    p = row[x].getCurrentOccupyingPiece()
+                                    if (newProps["piece"] == "R" and isinstance(p,Rook)) or (newProps["piece"] == "N" and isinstance(p, Knight)) or (newProps['piece'] == "P" and isinstance(p, Pawn)) or (newProps['piece'] == "Q" and isinstance(p, Queen) or (newProps["piece"] == "B" and isinstance(p, Bishop)) or (newProps['piece'] == "K" and isinstance(p, King))):
+                                        if (newProps['pos'][0], newProps['pos'][1]) in p.get_legal_moves():
+                                            y = rindex
+                                            piece = p
+                                            break
+                            else:
+                                for rindex, row in enumerate(board.config):
+                                    for cindex, col in enumerate(row):
+                                        p = col.getCurrentOccupyingPiece()
+                                        if (newProps["piece"] == "R" and isinstance(p,Rook)) or (newProps["piece"] == "N" and isinstance(p, Knight)) or (newProps['piece'] == "P" and isinstance(p, Pawn)) or (newProps['piece'] == "Q" and isinstance(p, Queen) or (newProps["piece"] == "B" and isinstance(p, Bishop)) or (newProps['piece'] == "K" and isinstance(p, King))):
+                                            if (newProps['pos'][0], newProps['pos'][1]) in p.get_legal_moves():
+                                                x = cindex
+                                                y = rindex
+                                                piece = p
+                                                break
+                            index = board.pieceMapping.index(piece)
+                            board.updateConfig(index, (x, y))
+                            board.puzzleSolution.pop(0)
+                    ############################################################################
+                    ###############THIS IS FOR THE ACTUAL PUZZLE SIM############################
+                    ############################################################################
+                    elif piece.getPosition() in currPieceLegalMoves and board.puzzleSolution == []:
                         if prevMove is not None and (piece.x != prevMove[0] or piece.y != prevMove[1]):
                             oppPiece = board.config[piece.y][piece.x].getCurrentOccupyingPiece()
                             if oppPiece is not None and oppPiece.color != piece.color:
@@ -89,7 +163,7 @@ while running:
                                     if board.config[piece.y - 1][piece.x].getCurrentOccupyingPiece() in board.whiteenpassants:
                                         board.updateConfig(board.pieceMapping.index((board.config[piece.y-1][piece.x].getCurrentOccupyingPiece(),1)), (piece.x, piece.y-1), True)
                             board.updateConfig(active_box, prevMove)
-                            
+
                             # Switch turns!!
                             board.turn = "black" if board.turn == "white" else "white"
                             
@@ -146,7 +220,7 @@ while running:
 
     board.draw_board(screen)
     board.draw_pieces(screen)
-
+    board.displayCapturedPieces(screen)
     # Make the button to indicate that we want to set up the puzzle on the board
     
 

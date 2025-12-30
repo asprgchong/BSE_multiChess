@@ -6,10 +6,12 @@ from pieces.Queen import Queen
 from pieces.King import King
 from pieces.Pawn import Pawn
 import pygame
+import queryPuzzle
 
 cellwidth = 120
 leftPush = 40
-topPush = 30
+topPush = 80
+notation = ['a','b','c','d','e','f','g','h']
 
 class Board:
     def __init__(self, width, height):
@@ -35,6 +37,12 @@ class Board:
         self.whiteKing = None 
         self.whiteenpassants = []
         self.blackenpassants = []
+        self.whiteCaptureDisplay = []
+        self.blackCaptureDisplay = []
+
+        #puzzle initializations
+        self.puzzleSolution = []
+        self.puzzleStart = "white"
 
     def boardSetUp(self, FENlist=""):
         result = []
@@ -79,27 +87,97 @@ class Board:
                         col += 1
                         newTile = Tile(newPiece.x, newPiece.y, cellwidth, cellwidth)
                         newTile.occupying_piece = newPiece
-                        newrow.append(newTile)
-                    
-                # for x in newrow:
-                #     p = x.getCurrentOccupyingPiece()
-                #     if isinstance(p, Pawn):
-                #         print("Pawn | ", end='')
-                #     elif isinstance(p, Rook):
-                #         print("Rook | ", end='')
-                #     elif isinstance(p, Knight):
-                #         print("Knight | ", end='')
-                #     elif isinstance(p, Bishop):
-                #         print("Bishop | ", end='')
-                #     elif isinstance(p, King):
-                #         print("King | ", end='')
-                #     elif isinstance(p, Queen):
-                #         print("Queen | ", end='')
-                #     else:
-                #         print("  | ", end='')
-                # print(' ')
-                        
+                        newrow.append(newTile)                        
                 result.append(newrow)
+
+            if FENlist[-1][0] == "w":
+                self.turn = "white"
+                self.puzzleStart = "white"
+            else:
+                self.turn = "black"
+                self.puzzleStart = "black"
+            print("Turn set: ", self.turn)
+        
+            self.config = result
+            blackKing = self.config[self.blackKing[1]][self.blackKing[0]].getCurrentOccupyingPiece()
+            whiteKing = self.config[self.whiteKing[1]][self.whiteKing[0]].getCurrentOccupyingPiece()
+            if FENlist[-1][1] != "-":
+                if "q" in FENlist[-1][1] or "k" in FENlist[-1][1]:
+                    blackKing.castle = True
+                else: 
+                    blackKing.castle = False
+                if "Q" in FENlist[-1][1] or "K" in FENlist[-1][1]:
+                    whiteKing.castle = True
+                else:
+                    whiteKing.castle = False
+            else:
+                blackKing.castle = False
+                whiteKing.castle = False
+
+            if FENlist[-1][2] != "-":
+                x = notation.index(FENlist[-1][2][0])
+                y = int(FENlist[-1][2][1])
+                print(x,y)
+                p = self.config[y][x].getCurrentOccupyingPiece()
+                if self.turn == "white":
+                    self.blackenpassants.append(p)
+                else:
+                    self.whiteenpassants.append(p)
+                p.doubleUp = (False, 1)
+
+            # After setting up the board and all the other options, set up the solution
+            # Need to check for all possible cases of the algebraic notation...
+            x = queryPuzzle.getSolution()
+            sol = [l for l in x.split(" ") if "." not in l and "*" not in l]
+            print(sol)
+            temp = []
+            # posList = []
+            for each in sol:
+                t = {}
+                copy = list(each)
+                if copy[0].isupper():
+                    t["piece"] = copy[0]
+                    copy.pop(0)
+                else:
+                    t["piece"] = None
+                if "+" in copy:
+                    t["check"] = True
+                    copy.pop(copy.index("+"))
+                else:
+                    t["check"] = False
+                if "x" in copy:
+                    t['capture'] = True
+                    copy.pop(copy.index("x"))
+                else:
+                    t['capture'] = False
+                
+                if "#" in copy:
+                    t['mate'] = True
+                    copy.pop(copy.index("#"))
+                else:
+                    t['mate'] = False
+
+                if t["piece"] is None:
+                    t['piece'] = "P"
+
+                if len(copy) > 2:
+                    if copy[0].isalpha():
+                        t['row'] = copy[0]
+                    else:
+                        t['row'] = None
+                    if copy[0].isnumeric():
+                        t['col'] = int(copy[0])
+                    else:
+                        t['col'] = None
+                    copy.pop(0)
+                print(copy)
+                x = notation.index(copy[0])
+                y = 7 - (int(copy[1]) - 1)
+                t["pos"] = (x,y)
+                temp.append(t)
+                # posList.append((x,y))
+            self.puzzleSolution = temp
+            print(temp)
         else:
             for rowindex, eachrow in enumerate(self.config):
                 row = [] 
@@ -136,7 +214,7 @@ class Board:
                     newTile.occupying_piece = newPiece
                     row.append(newTile)
                 result.append(row)
-        self.config = result
+            self.config = result
 
     def draw_board(self, screen):
         for i in range(32):
@@ -285,6 +363,10 @@ class Board:
             piece.castle = not piece.castle if piece.castle else piece.castle
 
         if capture:
+            if piece.color == "white":
+                self.whiteCaptureDisplay.append(piece)
+            else:
+                self.blackCaptureDisplay.append(piece)
             self.config[prevPosition[1]][prevPosition[0]].occupying_piece = None
             self.pieceMapping[index] = (piece, 0)
         else:
@@ -294,7 +376,7 @@ class Board:
         if piece.color == "white":
             self.blackenpassants = []
         else:
-            self.whiteenpassants = []
+            self.whiteenpassants = [] 
 
     def is_in_check(self, color):
         """
@@ -326,3 +408,15 @@ class Board:
                 return "stalemate"
         
         return "nope"
+
+    def displayCapturedPieces(self, screen):
+        for i,eachpiece in enumerate(self.blackCaptureDisplay):
+            image = pygame.image.load(eachpiece.image).convert_alpha()
+            pscale = pygame.transform.scale(image, (40, 40))
+            screen.blit(pscale, (leftPush + (40 * i), topPush-50))
+
+        for i,eachpiece in enumerate(self.whiteCaptureDisplay):
+            image = pygame.image.load(eachpiece.image).convert_alpha()
+            pscale = pygame.transform.scale(image, (40, 40))
+            screen.blit(pscale, (leftPush + (45 * i), topPush+960+10))
+    
