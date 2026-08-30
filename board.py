@@ -47,7 +47,7 @@ class Board:
     def boardSetUp(self, FENlist=""):
         result = []
         if FENlist != "":
-            print(FENlist)
+            # print(FENlist)
             for rowindex, row in enumerate(FENlist[:-1]):
                 newrow = [] 
                 col = 0
@@ -128,7 +128,8 @@ class Board:
             # After setting up the board and all the other options, set up the solution
             # Need to check for all possible cases of the algebraic notation...
             x = queryPuzzle.getSolution()
-            sol = [l for l in x.split(" ") if "." not in l and "*" not in l]
+            results = {"1-0", "0-1", "1/2-1/2", "*"}
+            sol = [l for l in x.split(" ") if l and "." not in l and l not in results]
             print(sol)
             temp = []
             # posList = []
@@ -170,6 +171,9 @@ class Board:
                     else:
                         t['col'] = None
                     copy.pop(0)
+                else:
+                    t['row'] = None
+                    t['col'] = None
                 print(copy)
                 x = notation.index(copy[0])
                 y = 7 - (int(copy[1]) - 1)
@@ -177,7 +181,6 @@ class Board:
                 temp.append(t)
                 # posList.append((x,y))
             self.puzzleSolution = temp
-            print(temp)
         else:
             for rowindex, eachrow in enumerate(self.config):
                 row = [] 
@@ -371,6 +374,8 @@ class Board:
             self.pieceMapping[index] = (piece, 0)
         else:
             self.config[piece.y][piece.x].occupying_piece = piece
+            print(self.config[piece.y][piece.x].occupying_piece)
+            print((self.config[piece.y][piece.x].occupying_piece.x, self.config[piece.y][piece.x].occupying_piece.y))
             self.config[prevPosition[1]][prevPosition[0]].occupying_piece = None
 
         if piece.color == "white":

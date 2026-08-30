@@ -10,8 +10,8 @@ def getDaysPuzzle():
     return list
 
 def getSolution():
-    client = ChessDotComClient(user_agent = "chess puzzler")
+    client = ChessDotComClient(user_agent="chess puzzler")
     r = client.get_current_daily_puzzle()
     response = json.loads(r.text)
-    list = response['pgn'].split("]\r\n\r\n")[1]
+    list = response['pgn'].replace("\r\n", "\n").split("\n\n")[1]
     return list
