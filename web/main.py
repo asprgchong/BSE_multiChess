@@ -29,6 +29,9 @@ async def main():
     prevMove = None
     currPieceLegalMoves = []
     gameOver = False
+
+    moveHistory = []
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -95,6 +98,7 @@ async def main():
                                 board.updateConfig(active_box, prevMove)
 
                                 # Switch turns!!
+                                moveHistory.append(f"{board.turn[0]} {piece.__class__.__name__} {prevMove} → {(piece.x, piece.y)}")
                                 board.turn = "black" if board.turn == "white" else "white"
                                 
                                 # Checking for checkmate/stalemate
@@ -144,6 +148,17 @@ async def main():
         panel = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
         panel.fill((0, 0, 0, 150))   # RGBA — last value is alpha (0=clear, 255=solid)
         screen.blit(panel, (panel_x, panel_y))
+
+        # Showing what turn it is 
+        turn_font = pygame.font.Font(None, 48)
+        turn_text = turn_font.render(f"{board.turn.capitalize()} to move", True, (255, 255, 255))
+
+        # Showing the move history
+        history_font = pygame.font.Font(None, 28)
+        for i, move in enumerate(moveHistory[-20:]):
+            text = history_font.render(move, True, (255, 255, 255))
+            screen.blit(text, (panel_x + 20, panel_y + 50 + i * 25))
+        screen.blit(turn_text, (panel_x + 10, panel_y + 10))
 
         board.draw_board(screen)
         board.draw_pieces(screen)
