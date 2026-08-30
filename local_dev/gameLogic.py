@@ -1,5 +1,5 @@
 from board import Board 
-import queryPuzzle  
+import queryPuzzle as queryPuzzle  
 from pieces.Rook import Rook
 from pieces.Knight import Knight
 from pieces.Bishop import Bishop

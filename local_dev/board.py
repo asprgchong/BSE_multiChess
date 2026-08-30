@@ -6,7 +6,7 @@ from pieces.Queen import Queen
 from pieces.King import King
 from pieces.Pawn import Pawn
 import pygame
-import queryPuzzle
+import queryPuzzle as queryPuzzle
 
 cellwidth = 120
 leftPush = 40

@@ -1,3 +1,8 @@
 /chess
 /_pycache_
 /pieces/_pycache_
+/local_dev/_pycache_
+/local_dev/pieces/_pycache_
+/venv_chess
+/web/_pycache_
+/web/build
