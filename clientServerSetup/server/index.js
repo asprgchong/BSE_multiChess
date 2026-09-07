@@ -49,11 +49,13 @@ io.on("connection", (socket) => {
                 socket.join(roomID);
                  // Randomly assign colors to each player
                 if (Math.random() < 0.5){
-                    socket.emit('colorAssign', "black");
-                    socket.to(roomID).emit('colorAssign', "white");
+                    console.log(`Assigning: joiner=black, rest-of-room=white`);
+                    socket.emit('colorAssign', "b");
+                    socket.to(roomID).emit('colorAssign', "w");
                 } else {
-                    socket.emit('colorAssign', "white");
-                    socket.to(roomID).emit('colorAssign', "black");
+                    console.log(`Assigning: joiner=white, rest-of-room=black`);
+                    socket.emit('colorAssign', "w");
+                    socket.to(roomID).emit('colorAssign', "b");
                 }
 
                 // Make a chess.js instance when the room has both players
@@ -71,7 +73,54 @@ io.on("connection", (socket) => {
         }
     })
 
+
+    // **********************************************************************
+    // ********* Function for chess implementation and game updates *********
+    // **********************************************************************
+    socket.on('makeMove', ({roomID, from, to}) => {
+        // Check if chess.js instance exists
+        if (chessMap.has(roomID)){
+            const chessInstance = chessMap.get(roomID);
+            // if the game is under play
+            if (!chessInstance.isGameOver()){
+                // try to make the given move and returns a move object
+                // e.g. { color: 'w', from: 'g2', to: 'g3', piece: 'p', san: 'g3' }
+                try {
+                    const move = chessInstance.move({from: from, to: to});
+                    io.to(roomID).emit('moveValid', { fen: chessInstance.fen() });
+
+                    // need to check if mated- if so then end game 
+                    if (chessInstance.isGameOver()){
+                        const winningCond = {};
+                        if (chessInstance.isDrawByFiftyMoves()){
+                            winningCond.type = "Draw by Fifty Moves rule";
+                        } else if (chessInstance.isInsufficientMaterial()){
+                            winningCond.type = "Draw by Insufficient Material";
+                        } else if (chessInstance.isThreefoldRepetition()){
+                            winningCond.type = "Draw by repetition";
+                        } else if (chessInstance.isStalemate()){
+                            winningCond.type = "Draw by stalemate";
+                        } else {
+                            winningCond.winner = chessInstance.turn() == 'b' ? "w" : "b";
+                            winningCond.type = "checkmate";
+                        }
+                        io.to(roomID).emit('gameOver', winningCond);                        
+                    }
+                } catch(err) {
+                    // otherwise, emit to socket invalid move and does not reflect in server state
+                    socket.emit('invalidMove');
+                }
+            } else {
+                // Send a message that game is over.
+                io.to(roomID).emit('gameOver'); 
+            }
+        } else {
+            socket.emit('moveError', `No chess instance found`);
+        }
+    })
+
 });
 
 // Sets the server to listen to a given port and callback just prints that server is set on port and ready to receive emits 
 server.listen(port, ()=> {console.log("Server is listening")});
+

@@ -1,4 +1,6 @@
+import { Chess } from 'chess.js';
 import { useEffect, useRef, useState } from 'react';
+import { Chessboard } from 'react-chessboard';
 import { io } from 'socket.io-client';
 import './App.css';
 
@@ -6,13 +8,21 @@ function App() {
     const [roomCreated, setRoomCreated] = useState("")
     // Reference for socket of the client
     const socketRef = useRef(null)
+
     // Stored a given roomID from creating a room
+    // Add activeID in case user adds another room
     const [joinID, setJoinID] = useState(null)
+    const [activeID, setActiveID] = useState(null)
+
     // Stores the color client is playing as
     const [gameColor, setColor] = useState(null)
+
     // Storing whether the game is still in session or not
     const [playing, setGameStatus] = useState(false)
 
+    // Stores local chess instance / game state
+    const [chessInstance, setChessInst] = useState(null)
+    
     useEffect(() => {
         // set the socket reference to initialize a socket on the specified URL
         socketRef.current = io("http://localhost:3000")
@@ -23,6 +33,7 @@ function App() {
         // Stores the roomID of the server-created room
         socketRef.current.on('roomCreated', (roomID)=>{
             setRoomCreated(roomID)
+            setActiveID(roomID)
         })
 
         // Stores the colorAssigned by the server for the game
@@ -38,6 +49,24 @@ function App() {
 
             // If the game has started, we will create a chess.js instance as
             // our local instance.
+            const newChessInstance = new Chess()
+            // should this be the instance or FEN string? 
+            setChessInst(newChessInstance)
+        })
+
+        // Checking that move made is validated by server
+        // If not, undo the move!
+        socketRef.current.on('invalidMove', () => {
+            setChessInst(prev => {
+                const tempInstance = new Chess(prev.fen())
+                tempInstance.undo()
+                return tempInstance
+            })
+        })
+
+        // If the other player makes a valid move, we want to update our local state as well
+        socketRef.current.on('moveValid', ({fen}) => {
+            setChessInst(new Chess(fen))
         })
 
         // If roomID passed to server is invalid or room to join is full, output
@@ -54,6 +83,29 @@ function App() {
             console.log("Disconnected")
         }
     }, [])
+
+    // For react chess board
+    function canDragColorPieces({piece}){
+        console.log('piece:', piece, 'gameColor:', gameColor);
+        return (piece.pieceType[0] == gameColor);
+    }
+
+    function onPieceDrop({sourceSquare, targetSquare}){
+        console.log('onPieceDrop fired:', sourceSquare, targetSquare)
+        const tempInstance = new Chess(chessInstance.fen())
+        try {
+            // Updates the instance locally
+            tempInstance.move({from: sourceSquare, to: targetSquare})
+            setChessInst(tempInstance)
+
+            // Need to make the change on the server too
+            socketRef.current.emit('makeMove', {roomID:activeID, from:sourceSquare, to:targetSquare})
+            return true
+        } catch {
+            console.log("Invalid move!")
+            return false
+        }
+    }   
 
     return (
     <>
@@ -74,7 +126,10 @@ function App() {
         <button
             type="button"
             className="joinRoom"
-            onClick={()=>{socketRef.current.emit('joinRoom', joinID)}}
+            onClick={()=>{
+                socketRef.current.emit('joinRoom', joinID) 
+                setActiveID(joinID)
+            }}
         >
             Join room now
         </button>
@@ -82,6 +137,17 @@ function App() {
         {playing ? <p>The game has started!</p> : <p>Game has not started</p>}
 
         {gameColor ? <p>Playing as {gameColor}</p> : <p></p>}
+
+        {console.log(`Before chess:${gameColor}`)}
+        {playing && chessInstance && (
+            <Chessboard options={{
+                canDragPiece: canDragColorPieces,
+                onPieceDrop,
+                position: chessInstance.fen(),
+                boardOrientation: gameColor,
+                id: `player-${gameColor}`
+            }} />
+        )}
 
         </section>
     </>
