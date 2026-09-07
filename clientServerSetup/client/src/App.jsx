@@ -26,7 +26,7 @@ function App() {
     
     useEffect(() => {
         // set the socket reference to initialize a socket on the specified URL
-        socketRef.current = io("http://localhost:3000")
+        socketRef.current = io("https://bse-multichess.onrender.com")
         socketRef.current.on('connect', ()=>{
             console.log("Connection made with server!")
         });
