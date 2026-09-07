@@ -165,7 +165,7 @@ function App() {
                 canDragPiece: canDragColorPieces,
                 onPieceDrop,
                 position: chessInstance.fen(),
-                boardOrientation: gameColor,
+                boardOrientation: gameColor === 'w' ? 'white' : 'black',
                 id: `player-${gameColor}`
             }} />
         )}
