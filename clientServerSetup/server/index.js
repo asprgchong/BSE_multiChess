@@ -14,7 +14,7 @@ const port = process.env.PORT || 3000;
 const server = createServer(app); 
 
 // Attach to socket.io so that the server can listen for websocket events
-const io = new Server(server, {cors: {"origin": "*"}});
+const io = new Server(server, {cors: {"origin": "https://bse-multichess-frontend.onrender.com"}});
 
 // On the event of connection, we can output that the socket (identified by its ID) is connected to our server
 io.on("connection", (socket) => {
