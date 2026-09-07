@@ -102,7 +102,7 @@ io.on("connection", (socket) => {
                             winningCond.type = "Draw by stalemate";
                         } else {
                             winningCond.winner = chessInstance.turn() == 'b' ? "w" : "b";
-                            winningCond.type = "checkmate";
+                            winningCond.type = "Checkmate";
                         }
                         io.to(roomID).emit('gameOver', winningCond);                        
                     }

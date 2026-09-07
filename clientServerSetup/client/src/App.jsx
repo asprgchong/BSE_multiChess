@@ -19,8 +19,9 @@ function App() {
 
     // Storing whether the game is still in session or not
     const [playing, setGameStatus] = useState(false)
+    const [result, setGameResult] = useState(null)
 
-    // Stores local chess instance / game state
+    // Stores local chess instance
     const [chessInstance, setChessInst] = useState(null)
     
     useEffect(() => {
@@ -69,6 +70,13 @@ function App() {
             setChessInst(new Chess(fen))
         })
 
+        // If the game has ended, need to stop play
+        socketRef.current.on('gameOver', (winCond) => {
+            setGameStatus(false)
+            // displaying game over message
+            setGameResult(winCond ?? { type: "Game over" })
+        })
+
         // If roomID passed to server is invalid or room to join is full, output
         socketRef.current.on('invalidRoom', (message) => {
             console.log(message)
@@ -94,13 +102,18 @@ function App() {
         console.log('onPieceDrop fired:', sourceSquare, targetSquare)
         const tempInstance = new Chess(chessInstance.fen())
         try {
-            // Updates the instance locally
-            tempInstance.move({from: sourceSquare, to: targetSquare})
-            setChessInst(tempInstance)
+            if (playing) {
+                // Updates the instance locally
+                tempInstance.move({from: sourceSquare, to: targetSquare})
+                setChessInst(tempInstance)
 
-            // Need to make the change on the server too
-            socketRef.current.emit('makeMove', {roomID:activeID, from:sourceSquare, to:targetSquare})
-            return true
+                // Need to make the change on the server too
+                socketRef.current.emit('makeMove', {roomID:activeID, from:sourceSquare, to:targetSquare})
+                return true
+            } else {
+                console.log("Game ended!")
+                return false
+            }
         } catch {
             console.log("Invalid move!")
             return false
@@ -137,6 +150,14 @@ function App() {
         {playing ? <p>The game has started!</p> : <p>Game has not started</p>}
 
         {gameColor ? <p>Playing as {gameColor}</p> : <p></p>}
+
+        {result && (
+                <p>
+                    {result.winner
+                        ? `${result.type}! ${result.winner === 'w' ? 'White' : 'Black'} wins.`
+                        : result.type}
+                </p>
+        )}
 
         {console.log(`Before chess:${gameColor}`)}
         {playing && chessInstance && (
