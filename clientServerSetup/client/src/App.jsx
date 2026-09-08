@@ -159,7 +159,7 @@ function App() {
                 </p>
         )}
 
-        {console.log(`Before chess:${gameColor}`)}
+        <div style={{ width: '80%' }}>
         {playing && chessInstance && (
             <Chessboard options={{
                 canDragPiece: canDragColorPieces,
@@ -169,6 +169,7 @@ function App() {
                 id: `player-${gameColor}`
             }} />
         )}
+        </div>
 
         </section>
     </>
