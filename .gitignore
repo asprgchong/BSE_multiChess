@@ -1,8 +1,11 @@
 /chess
-/_pycache_
-/pieces/_pycache_
-/local_dev/_pycache_
-/local_dev/pieces/_pycache_
+/__pycache__
+/pieces/__pycache__
+/local_dev/__pycache__
+/local_dev/pieces/__pycache__
 /venv_chess
-/web/_pycache_
+/web/__pycache__
 /web/build
+/tests/__pycache__
+/clientServerSetup/learnings
+node_modules
