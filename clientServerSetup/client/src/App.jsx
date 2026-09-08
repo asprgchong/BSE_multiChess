@@ -160,15 +160,15 @@ function App() {
         )}
 
         <div style={{ width: '80%' }}>
-        {playing && chessInstance && (
-            <Chessboard options={{
-                canDragPiece: canDragColorPieces,
-                onPieceDrop,
-                position: chessInstance.fen(),
-                boardOrientation: gameColor === 'w' ? 'white' : 'black',
-                id: `player-${gameColor}`
-            }} />
-        )}
+            {playing && chessInstance && (
+                <Chessboard options={{
+                    canDragPiece: canDragColorPieces,
+                    onPieceDrop,
+                    position: chessInstance.fen(),
+                    boardOrientation: gameColor === 'w' ? 'white' : 'black',
+                    id: `player-${gameColor}`
+                }} />
+            )}
         </div>
 
         </section>
