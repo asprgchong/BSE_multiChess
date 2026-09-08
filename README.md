@@ -46,4 +46,4 @@ To ensure that the client/frontend and server/backend parts are communicating, e
 2. In ```clientServerSetup/server/index.js```, change the CORS setting to include your frontend URL to avoid origin resource sharing errors: ```{cors: {"origin": "<insertURL>"}}```
 
 ## Demo of my server and client!
-https://github.com/user-attachments/assets/d7d4cf74-f0e7-41dc-85e1-247af719e003
+https://github.com/user-attachments/assets/37d60f76-49d6-47b1-9bcc-aec28ef27175
