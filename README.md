@@ -1,6 +1,4 @@
 # BSE_multiChess
-Part of a series: solves the problem of wanting to do chess puzzles with someone else
-# BSE_multiChess
 This is my multiplayer chess project for learning and implementing everything I need to build a collaborative chess puzzle solver to solve puzzles with my friends. I am building this to be able to talk through puzzle ideas and collaboratively learn puzzle patterns, learn about game development / working with servers and clients, and having fun learning by doing. 
 
 ## File Structure
@@ -47,4 +45,5 @@ To ensure that the client/frontend and server/backend parts are communicating, e
 1. In ```clientServerSetup/client/src/App.jsx```, change the URL of your backend to the socket reference link: ```socketRef.current = io(<insertURL>)```
 2. In ```clientServerSetup/server/index.js```, change the CORS setting to include your frontend URL to avoid origin resource sharing errors: ```{cors: {"origin": "<insertURL>"}}```
 
-## Demo
+## Demo of my server and client!
+https://github.com/user-attachments/assets/d7d4cf74-f0e7-41dc-85e1-247af719e003
